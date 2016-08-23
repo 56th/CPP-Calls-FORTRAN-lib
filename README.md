@@ -6,7 +6,7 @@
 
 ## Зачем
 
-В проекте [CATS’ PDEs] (https://github.com/CATSPDEs) часто приходится работать с большими разреженными матрицами — матрицами, большинство элементов которых равны нулю и не хранятся. 
+В проекте [CATS’ PDEs] (https://github.com/CATSPDEs) часто приходится работать с большими разреженными матрицами — матрицами, большинство элементов которых равно нулю и не хранятся. 
 Существует, вообще говоря, довольно много<sup id="fnb1">[1] (#fn1)</sup> форматов хранения для таких матриц. 
 
 CSC–формат (*Comressed Sparse Column*, разреженно–столбцовый) является наиболее гибким и популярным в МКЭ форматом.
@@ -56,14 +56,15 @@ CSC–формат (*Comressed Sparse Column*, разреженно–столб
 
 Вероятно, Visual Studio* у вас уже есть. Intel Fortran суть часть Intel Parallel Studio, купить её можно [здесь] (https://software.intel.com/en-us/fortran-compilers/try-buy). Если вы студент, ресёрчер и т.п., можете [забрать бесплатно] (https://software.intel.com/en-us/qualify-for-free-software) — достаточно иметь вузовскую почту.
 
-Вероятно, вам не захочется устанавливать все модули Intel Parallel Studio — оставьте чекбоксы только на ifort. Крайне советую установить их расширение для работы с `FORTRAN`’ом для Visual Studio* (нажать чекбокс во время установки). Ниже объясню, почему это удобно.
+Скорее всего вам не захочется устанавливать все модули Intel Parallel Studio — оставьте чекбоксы только на ifort. Крайне советую установить их расширение для работы с `FORTRAN`’ом для Visual Studio* (нажать чекбокс во время установки). Дальше я объясню, почему это удобно.
+
 В Intel Parallel Studio нет GUI. **Неочевидная вещь**: если вы забыли установить какой-то модуль (или установили лишний), можно это исправить… через удаление. После запуска деинстоллера выбираете опцию “Modify” и вперёд.  
 
 ## План™
 
 Вызывать будем подпрограммы `FORTRAN`’а из `C++`–приложения. Точка входа в [`sln/C++ Sources/user.cpp`](https://github.com/56th/CPP-Calls-FORTRAN-lib/blob/master/sln/C++ Sources/user.cpp), подпрограммы — в [`sln/FORTRAN Static Lib/add.f90`](https://github.com/56th/CPP-Calls-FORTRAN-lib/blob/master/sln/FORTRAN Static Lib/add.f90 ) и [`″/square.f90`](https://github.com/56th/CPP-Calls-FORTRAN-lib/blob/master/sln/FORTRAN Static Lib/square.f90 ).
 
-Есть два пути: создать статическую (в Windows обычно имеет расширение **.lib**) или динамическую (shared) библиотеку (″ **.dll**). По своей сути статическая библиотека суть объектный файл (**.o**, **.obj**) и подключается к приложению во время линковки, динамическая — исполняемый файл (**.exe**), подключается в рантайме.
+Есть два пути: создать статическую (в Windows обычно имеет расширение **.lib**) или динамическую (shared) библиотеку (″ **.dll**). По своей природе статическая библиотека суть объектный файл (**.o**, **.obj**) и подключается к приложению во время линковки, динамическая — исполняемый файл (**.exe**), подключается в рантайме.
 
 Для наших целей достаточно написать (возможно, много) подпрограмм на `FORTRAN`’е, скормить их ifort’рану и собрать статическую библиотеку, которую затем успешно линковать к `C++`. На времени компиляции основного приложения это не отразится и все будут счастливы.
 
@@ -82,8 +83,11 @@ CSC–формат (*Comressed Sparse Column*, разреженно–столб
 3. Компилируем приложение с MSVC и запускаем:
 
    `> cl /EHsc /Ox user.cpp f.lib`
+   
    `> user.exe`
    
+Результат выполнения:
+
 ![Терминал ifort][ifortTerminal]
 
 Ту же штуку вне среды ifort у вас так просто провернуть не получится, потому что MSVC понятия не имеет, где искать `FORTRAN`’онские библиотеки (типа ifconsol.lib и т.д., как [предупреждает] (https://software.intel.com/en-us/node/525352) документация):
@@ -98,7 +102,7 @@ CSC–формат (*Comressed Sparse Column*, разреженно–столб
 
 ### Настройка IDE
 
-Положим, у нас есть в решении два проекта: пустой проект Visual C++ для user.cpp (**C++ Sources**) и статическая библиотека Visual Fortran для add.f90 и square.f90 (**FORTRAN Static Lib**).
+Положим, у нас есть в решении два проекта: пустой проект Visual C++ для user.cpp (**C++ Sources** в этом репозитории) и статическая библиотека Visual Fortran для add.f90 и square.f90 (**FORTRAN Static Lib** ″).
 
 Второй создать очень просто (я предполагаю, что расширение установлено) — `File — New Project — Intel(R) Visual Fortran — Library — Static Library`.
 
@@ -106,13 +110,13 @@ CSC–формат (*Comressed Sparse Column*, разреженно–столб
 
 Для настройки (почти) достаточно прочитать [эту] (https://software.intel.com/en-us/node/525352) и [эту] (https://software.intel.com/en-us/articles/configuring-visual-studio-for-mixed-language-applications) странички документации и посмотреть примеры проектов, дефолтно расположенных примерно в `C:\Program Files*\IntelSWTools\samples*\en\compiler_f\psxe\MixedLanguage`. Однако имеют место небольшие опечатки и недосказанности, поэтому я лучше здесь об этом напишу.
 
-По какой-то причине Visual Fortran–проекты не переключаются на x64–платформу автоматически (естественно, если вы хотите делать 64-битные приложения, вы скачали эту версию ifort). Чтобы это исправить, нажимаем на селектбокс платформ Win32 / x64: `Configuration Manager… — Platform — (напротив FORTRAN Static Lib) <New…> — x64 — Copy settings from: <Empty>`.
+По какой-то причине Visual Fortran–проекты не переключаются на x64–платформу автоматически (естественно, если вы хотите делать 64-битные приложения, вы скачали эту версию ifort). Чтобы это исправить, нажимаем на селектбокс платформ Win32 / x64: `Configuration Manager… — Platform — (напротив “FORTRAN Static Lib”) <New…> — x64 — Copy settings from: <Empty>`.
 
 Теперь попробуйте билдить **FORTRAN Static Lib**, переключая платформы. Если всё верно, в режиме x64 в окошке с логами вы заметите что-то вроде `Compiling with Intel(R) Visual Fortran Compiler* [Intel(R) 64]...`, а в режиме Win32 — `Compiling with Intel(R) Visual Fortran Compiler* [IA-32]...`.
 
-Осталось научить **C++ Sources** искать `FORTRAN`’онские библиотеки (см. предыдущий пункт) в нужных местах. Настройка выполняется один раз для всех Visual C++ проектов.
+Осталось научить **C++ Sources** искать `FORTRAN`’онские библиотеки (см. предыдущий пункт) в нужных местах. Настройка выполняется один раз для всех Visual C++–проектов.
 
-Кликаем `View — Other Windows — Property Manager — C++ Sources — Debug | Win32 — Microsoft.Cpp.Win32.user`. Для настройки x64 выбираем `″ — Debug | x64 — ″` соответственно (Release–конфигурацию настраивать вручную не придётся).
+Кликаем `View — Other Windows — Property Manager — “C++ Sources” — Debug | Win32 — Microsoft.Cpp.Win32.user`. Для настройки x64 выбираем `″ — Debug | x64 — ″` соответственно (Release–конфигурацию настраивать вручную не придётся).
 
 Далее идём в `VC++ Directories`. В `Include Directories` добавляем `$(IFORT_COMPILER[VERSION])compiler\include` (юху, Intel и макросы сделали для пути!). Вместо **[VERSION]** поставьте версию, у меня на момент написания стоит **16**. 
 Проверьте, что в `Evaluated value:` стоит что-то вменяемое типа `C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2016.3.207\windows\compiler\include` — скопируйте в проводник и откройте эту папку.
@@ -127,12 +131,12 @@ CSC–формат (*Comressed Sparse Column*, разреженно–столб
 
 ## Сноски
 
-1. <span id="fn1">Yousef Saad, [*SPARSKIT: A Basic Toolkit for Sparse Matrix Computations*] (http://www-users.cs.umn.edu/~saad/software/SPARSKIT/index.html) [↩](#fnb1)</span>
-2. <span id="fn2">Iain Duff, Roger Grimes, and John Lewis, [*User’s Guide for the Harwell–Boeing Sparse Matrix Collection*] (http://math.nist.gov/MatrixMarket/formats.html#hb) [↩](#fnb2)</span>
-3. <span id="fn3">Почему-то в университетских курсах для инженеров вообще не рассказывают о том, что стандартные форматы для хранения матриц уже придумали.
+1. <i id="fn1"></i> Yousef Saad, [*SPARSKIT: A Basic Toolkit for Sparse Matrix Computations*] (http://www-users.cs.umn.edu/~saad/software/SPARSKIT/index.html) [↩](#fnb1)
+2. <i id="fn2"></i> Iain Duff, Roger Grimes, and John Lewis, [*User’s Guide for the Harwell–Boeing Sparse Matrix Collection*] (http://math.nist.gov/MatrixMarket/formats.html#hb) [↩](#fnb2)
+3. <i id="fn3"></i> Почему-то в университетских курсах для инженеров вообще не рассказывают о том, что стандартные форматы для хранения матриц уже придумали.
 В России это как-то не принято (по крайней мере, у нас в НГТУ) — быть может, из-за не любви к истории (в одном только названии «боинг» столько романтики!). 
 В иностранных курсах такое я [встречал](http://ta.twi.tudelft.nl/nw/users/gijzen/CURSUS_DTU/HOMEPAGE/PhD_Course.html). Как следствие, студенты пишут свои велосипеды с нулём переносимости.
-Но вас я от этого уберёг — добавьте [Matrix Market](http://math.nist.gov/MatrixMarket/) в закладки и живите спокойно. [↩](#fnb3)</span>
+Но вас я от этого уберёг — добавьте [Matrix Market](http://math.nist.gov/MatrixMarket/) в закладки и живите спокойно. [↩](#fnb3)
 
 [ifortTerminal]: https://github.com/56th/CPP-Calls-FORTRAN-lib/blob/master/img/1.png "Терминал ifort"
 [MSVCTerminal]: https://github.com/56th/CPP-Calls-FORTRAN-lib/blob/master/img/2.png "Терминал MSVC"
