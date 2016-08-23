@@ -1,4 +1,4 @@
-# Как всё это работает
+# Смешанное программирование: `C++` вызывает `FORTRAN`
 
 Положим, вам нужно из приложения, написанного на `C++`, вызвать подпрограммы, написанные на `FORTRAN`’е.
 *Да*, такое может легко с вами случиться. Сначала о том, зачем это понадобилось мне. 
@@ -69,7 +69,61 @@ CSC–формат (*Comressed Sparse Column*, разреженно–столб
 
 ### Игрушечный пример: компиляция из терминала
 
+Запускаем терминал ifort: `[Start] — All Apps — Intel Parallel Studio* — Compiler*`. [Соберём и прилинкуем] (https://software.intel.com/en-us/node/525274) статическую библиотеку.
 
+1. Получаем объектные файлы:
+
+   `> ifort /c add.f90 square.f90`
+
+2. Собираем библиотеку:
+
+   `> lib /out:f.lib add.obj square.obj`
+
+3. Компилируем приложение с MSVC и запускаем:
+
+   `> cl /EHsc /Ox user.cpp f.lib`
+   `> user.exe`
+   
+![Терминал ifort][ifortTerminal]
+
+Ту же штуку вне среды ifort у вас так просто провернуть не получится, потому что MSVC понятия не имеет, где искать `FORTRAN`’онские библиотеки (типа ifconsol.lib и т.д., как [предупреждает] (https://software.intel.com/en-us/node/525352) документация):
+
+![Терминал MSVC][MSVCTerminal]
+
+Проблему можно решить, прилинковав вручную недостающие библиотеки. Дефолтно искать их стоит где-то в `C:\Program Files*\IntelSWTools\compilers_and_libraries*\windows\compiler\lib`.
+
+Легко догадаться, что то же веселье вас ждёт и при работе из Visual Studio* (а бог не зря вам её послал — едва ли вы будете компилировать и дебажить большой проект вручную из терминала). Ну и ещё добавится возня с разными платформами — Win32 / x64, разными конфигурациями — Release / Debug и [конфликтами C Run–Time Library] (https://msdn.microsoft.com/en-us/library/2kzt1wy3.aspx) — добавленные вручную библиотеки могут быть скомпилированы с разными ключами CRT.
+
+Чтобы сего веселья избежать, удобно использовать интеловское расширение для Visual Studio*, которое в предыдущем пункте я советовал установить.
+
+### Настройка IDE
+
+Положим, у нас есть в решении два проекта: пустой проект Visual C++ для user.cpp (**C++ Sources**) и статическая библиотека Visual Fortran для add.f90 и square.f90 (**FORTRAN Static Lib**).
+
+Второй создать очень просто (я предполагаю, что расширение установлено) — `File — New Project — Intel(R) Visual Fortran — Library — Static Library`.
+
+Головной модуль расположен в **C++ Sources**, поэтому необходимо, чтобы компилировался именно этот проект: `Right Click — Set as SrartUp Project`.
+
+Для настройки (почти) достаточно прочитать [эту] (https://software.intel.com/en-us/node/525352) и [эту] (https://software.intel.com/en-us/articles/configuring-visual-studio-for-mixed-language-applications) странички документации и посмотреть примеры проектов, дефолтно расположенных примерно в `C:\Program Files*\IntelSWTools\samples*\en\compiler_f\psxe\MixedLanguage`. Однако имеют место небольшие опечатки и недосказанности, поэтому я лучше здесь об этом напишу.
+
+По какой-то причине Visual Fortran–проекты не переключаются на x64–платформу автоматически (естественно, если вы хотите делать 64-битные приложения, вы скачали эту версию ifort). Чтобы это исправить, нажимаем на селектбокс платформ Win32 / x64: `Configuration Manager… — Platform — (напротив FORTRAN Static Lib) <New…> — x64 — Copy settings from: <Empty>`.
+
+Теперь попробуйте билдить **FORTRAN Static Lib**, переключая платформы. Если всё верно, в режиме x64 в окошке с логами вы заметите что-то вроде `Compiling with Intel(R) Visual Fortran Compiler* [Intel(R) 64]...`, а в режиме Win32 — `Compiling with Intel(R) Visual Fortran Compiler* [IA-32]...`.
+
+Осталось научить **C++ Sources** искать `FORTRAN`’онские библиотеки (см. предыдущий пункт) в нужных местах. Настройка выполняется один раз для всех Visual C++ проектов.
+
+Кликаем `View — Other Windows — Property Manager — C++ Sources — Debug | Win32 — Microsoft.Cpp.Win32.user`. Для настройки x64 выбираем `″ — Debug | x64 — ″` соответственно (Release–конфигурацию настраивать вручную не придётся).
+
+Далее идём в `VC++ Directories`. В `Include Directories` добавляем `$(IFORT_COMPILER[VERSION])compiler\include` (юху, Intel и макросы сделали для пути!). Вместо **[VERSION]** поставьте версию, у меня на момент написания стоит **16**. 
+Проверьте, что в `Evaluated value:` стоит что-то вменяемое типа `C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2016.3.207\windows\compiler\include` — скопируйте в проводник и откройте эту папку.
+
+В `Library Directories` добавляем `$(IFORT_COMPILER[VERSION])compiler\lib\ia32` и `$(IFORT_COMPILER[VERSION])compiler\lib\intel64` для Win32 и x64 соответственно. 
+
+Сбилдите **FORTRAN Static Lib**–проект и добавьте FORTRAN Static Lib.lib в **C++ Sources** (я предпочитаю вручную, но можно и в Project Properties подключить). Готово, можно компилировать.
+
+Удобно, что исходники теперь аккуратно расфасованы по разным проектам и код можно редактировать в любимой IDE. Более того, дебаг работает привычным образом:
+
+![Дебаг][VSDebug]
 
 ## Сноски
 
@@ -79,3 +133,7 @@ CSC–формат (*Comressed Sparse Column*, разреженно–столб
 В России это как-то не принято (по крайней мере, у нас в НГТУ) — быть может, из-за не любви к истории (в одном только названии «боинг» столько романтики!). 
 В иностранных курсах такое я [встречал](http://ta.twi.tudelft.nl/nw/users/gijzen/CURSUS_DTU/HOMEPAGE/PhD_Course.html). Как следствие, студенты пишут свои велосипеды с нулём переносимости.
 Но вас я от этого уберёг — добавьте [Matrix Market](http://math.nist.gov/MatrixMarket/) в закладки и живите спокойно. [↩](#fnb3)</span>
+
+[ifortTerminal]: https://github.com/56th/CPP-Calls-FORTRAN-lib/blob/master/img/1.png "Терминал ifort"
+[MSVCTerminal]: https://github.com/56th/CPP-Calls-FORTRAN-lib/blob/master/img/2.png "Терминал MSVC"
+[VSDebug]: https://github.com/56th/CPP-Calls-FORTRAN-lib/blob/master/img/3.gif "Дебаг"
