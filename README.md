@@ -7,7 +7,7 @@
 ## Зачем
 
 В проекте [CATS’ PDEs] (https://github.com/CATSPDEs) часто приходится работать с большими разреженными матрицами — матрицами, большинство элементов которых равны нулю и не хранятся. 
-Существует, вообще говоря, довольно много[<sup id="fnb1">1</sup>] (#fn1) форматов хранения для таких матриц. 
+Существует, вообще говоря, довольно много<sup id="fnb1">[1] (#fn1)</sup> форматов хранения для таких матриц. 
 
 CSC–формат (*Comressed Sparse Column*, разреженно–столбцовый) является наиболее гибким и популярным в МКЭ форматом.
 На нём же и основан не менее популярный стандарт хранения матриц в виде ASCII–текста **Harwell–Boeing**<sup id="fnb2">[2] (#fn2)</sup> (да–да, те самые боинги).
@@ -50,16 +50,32 @@ CSC–формат (*Comressed Sparse Column*, разреженно–столб
 
 ## С чем будем работать
 
-…
+* платформа: Windows 10 x64,
+* компилятор `C++`: MSVC (Visual Studio 2015),
+* компилятор `FORTRAN`: ifort.
+
+Вероятно, Visual Studio* у вас уже есть. Intel Fortran суть часть Intel Parallel Studio, купить её можно [здесь] (https://software.intel.com/en-us/fortran-compilers/try-buy). Если вы студент, ресёрчер и т.п., можете [забрать бесплатно] (https://software.intel.com/en-us/qualify-for-free-software) — достаточно иметь вузовскую почту.
+
+Вероятно, вам не захочется устанавливать все модули Intel Parallel Studio — оставьте чекбоксы только на ifort. Крайне советую установить их расширение для работы с `FORTRAN`’ом для Visual Studio* (нажать чекбокс во время установки). Ниже объясню, почему это удобно.
+В Intel Parallel Studio нет GUI. **Неочевидная вещь**: если вы забыли установить какой-то модуль (или установили лишний), можно это исправить… через удаление. После запуска деинстоллера выбираете опцию “Modify” и вперёд.  
+
+## План™
+
+Вызывать будем подпрограммы `FORTRAN`’а из `C++`–приложения. Точка входа в [`sln/C++ Sources/user.cpp`](https://github.com/56th/CPP-Calls-FORTRAN-lib/blob/master/sln/C++ Sources/user.cpp), подпрограммы — в [`sln/FORTRAN Static Lib/add.f90`](https://github.com/56th/CPP-Calls-FORTRAN-lib/blob/master/sln/FORTRAN Static Lib/add.f90 ) и [`″/square.f90`](https://github.com/56th/CPP-Calls-FORTRAN-lib/blob/master/sln/FORTRAN Static Lib/square.f90 ).
+
+Есть два пути: создать статическую (в Windows обычно имеет расширение **.lib**) или динамическую (shared) библиотеку (″ **.dll**). По своей сути статическая библиотека суть объектный файл (**.o**, **.obj**) и подключается к приложению во время линковки, динамическая — исполняемый файл (**.exe**), подключается в рантайме.
+
+Для наших целей достаточно написать (возможно, много) подпрограмм на `FORTRAN`’е, скормить их ifort’рану и собрать статическую библиотеку, которую затем успешно линковать к `C++`. На времени компиляции основного приложения это не отразится и все будут счастливы.
+
+### Игрушечный пример: компиляция из терминала
+
+
 
 ## Сноски
 
-1. Yousef Saad, [*SPARSKIT: A Basic Toolkit for Sparse Matrix Computations*] (http://www-users.cs.umn.edu/~saad/software/SPARSKIT/index.html) [↩](#fnb1)
-<span id="fn1"></span>
-2. Iain Duff, Roger Grimes, and John Lewis, [*User’s Guide for the Harwell–Boeing Sparse Matrix Collection*] (http://math.nist.gov/MatrixMarket/formats.html#hb) [↩](#fnb2)
-<span id="fn2"></span>
-3. Почему-то в университетских курсах для инженеров вообще не рассказывают о том, что стандартные форматы для хранения матриц уже придумали.
+1. <span id="fn1">Yousef Saad, [*SPARSKIT: A Basic Toolkit for Sparse Matrix Computations*] (http://www-users.cs.umn.edu/~saad/software/SPARSKIT/index.html) [↩](#fnb1)</span>
+2. <span id="fn2">Iain Duff, Roger Grimes, and John Lewis, [*User’s Guide for the Harwell–Boeing Sparse Matrix Collection*] (http://math.nist.gov/MatrixMarket/formats.html#hb) [↩](#fnb2)</span>
+3. <span id="fn3">Почему-то в университетских курсах для инженеров вообще не рассказывают о том, что стандартные форматы для хранения матриц уже придумали.
 В России это как-то не принято (по крайней мере, у нас в НГТУ) — быть может, из-за не любви к истории (в одном только названии «боинг» столько романтики!). 
 В иностранных курсах такое я [встречал](http://ta.twi.tudelft.nl/nw/users/gijzen/CURSUS_DTU/HOMEPAGE/PhD_Course.html). Как следствие, студенты пишут свои велосипеды с нулём переносимости.
-Но вас я от этого уберёг — добавьте [Matrix Market](http://math.nist.gov/MatrixMarket/) в закладки и живите спокойно. [↩](#fnb3)
-<span id="fn3"></span>
+Но вас я от этого уберёг — добавьте [Matrix Market](http://math.nist.gov/MatrixMarket/) в закладки и живите спокойно. [↩](#fnb3)</span>
