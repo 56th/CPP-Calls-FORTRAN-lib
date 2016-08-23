@@ -126,7 +126,7 @@
     <ClCompile Include="user.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\FORTRAN Static Lib\x64\Release\FORTRAN Static Lib.lib" />
+    <Library Include="..\FORTRAN Static Lib\Debug\FORTRAN Static Lib.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
