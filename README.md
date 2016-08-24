@@ -10,7 +10,7 @@
 Существует, вообще говоря, довольно много<sup id="fnb1">[1] (#fn1)</sup> форматов хранения для таких матриц. 
 
 CSC–формат (*Comressed Sparse Column*, разреженно–столбцовый) является наиболее гибким и популярным в МКЭ форматом.
-На нём же и основан не менее популярный стандарт хранения матриц в виде ASCII–текста **Harwell–Boeing**<sup id="fnb2">[2] (#fn2)</sup> (да–да, те самые боинги).
+На нём же и основан не менее популярный стандарт хранения матриц в виде ASCII–текста **Harwell–Boeing**<sup id="fnb2">[2] (#fn2)</sup> (да-да, те самые боинги).
 
 Матрицы в HB–формате нынешний софт понимает и любит. Например, та же `Mathematica` [умеет] (https://reference.wolfram.com/language/ref/format/HarwellBoeing.html) в импорт/экспорт HB–матриц
 в свой [SparseArray] (http://reference.wolfram.com/language/ref/SparseArray.html]), который, кстати, [использует] (http://reference.wolfram.com/language/LibraryLink/tutorial/InteractionWithMathematica.html#918619650) CSR–формат (*Comressed Sparse Row*, разреженно–строчный) андерхуд.
