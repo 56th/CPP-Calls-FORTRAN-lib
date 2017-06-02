@@ -7,10 +7,10 @@
 ## Зачем
 
 В проекте [CATS’ PDEs](https://github.com/CATSPDEs) часто приходится работать с большими разреженными матрицами — матрицами, большинство элементов которых равно нулю и не хранится. 
-Существует, вообще говоря, довольно много<sup id="fnb1">[1] (#fn1)</sup> форматов хранения для таких матриц. 
+Существует, вообще говоря, довольно много<sup id="fnb1">[1](#fn1)</sup> форматов хранения для таких матриц. 
 
 CSC–формат (*Comressed Sparse Column*, разреженно–столбцовый) является наиболее гибким и популярным в МКЭ форматом.
-На нём же и основан не менее популярный стандарт хранения матриц в виде ASCII–текста **Harwell–Boeing**<sup id="fnb2">[2] (#fn2)</sup> (да-да, те самые боинги).
+На нём же и основан не менее популярный стандарт хранения матриц в виде ASCII–текста **Harwell–Boeing**<sup id="fnb2">[2](#fn2)</sup> (да-да, те самые боинги).
 
 Матрицы в HB–формате нынешний софт понимает и любит. Например, та же `Mathematica` [умеет](https://reference.wolfram.com/language/ref/format/HarwellBoeing.html) в импорт/экспорт HB–матриц
 в свой [SparseArray](http://reference.wolfram.com/language/ref/SparseArray.html]), который, кстати, [использует](http://reference.wolfram.com/language/LibraryLink/tutorial/InteractionWithMathematica.html#918619650) CSR–формат (*Comressed Sparse Row*, разреженно–строчный) андерхуд.
@@ -30,7 +30,7 @@ CSC–формат (*Comressed Sparse Column*, разреженно–столб
 * [два](http://math.nist.gov/~KRemington/harwell_io/harwell_io.html), `С` (Karin A. Remington).
 
 Однако ввод/вывод делать я решил на `FORTRAN`’е и сейчас объясню, наконец, **зачем**. 
-Так уж вышло, что Harwell–Boeing придумали в далёком 1992-м; если вы посмотрите в [[2] (#fn2), с. 9], как он устроен, то довольно быстро поймёте,
+Так уж вышло, что Harwell–Boeing придумали в далёком 1992-м; если вы посмотрите в [[2](#fn2), с. 9], как он устроен, то довольно быстро поймёте,
 что формат очень `FORTRAN`–ориентирован — уже по первому предложению:
 
 > Our collection is held in an **80–column**, fixed–length format for portability…
@@ -62,7 +62,7 @@ CSC–формат (*Comressed Sparse Column*, разреженно–столб
 
 ## План™
 
-Вызывать будем подпрограммы `FORTRAN`’а из `C++`–приложения. Точка входа в [`sln/C++ Sources/user.cpp`](sln/C++ Sources/user.cpp), подпрограммы — в [`sln/FORTRAN Static Lib/add.f90`](sln/FORTRAN Static Lib/add.f90) и [`″/square.f90`](sln/FORTRAN Static Lib/square.f90).
+Вызывать будем подпрограммы `FORTRAN`’а из `C++`–приложения. Точка входа в `sln/C++ Sources/user.cpp`, подпрограммы — в `sln/FORTRAN Static Lib/add.f90` и `″/square.f90`.
 
 Есть два пути: создать статическую (в Windows обычно имеет расширение **.lib**) или динамическую (shared) библиотеку (″ **.dll**). По своей природе статическая библиотека суть объектный файл (**.o**, **.obj**) и подключается к приложению во время линковки, динамическая — исполняемый файл (**.exe**), подключается в рантайме.
 
@@ -108,7 +108,7 @@ CSC–формат (*Comressed Sparse Column*, разреженно–столб
 
 Головной модуль расположен в **C++ Sources**, поэтому необходимо, чтобы компилировался именно этот проект: `Right Click — Set as SrartUp Project`.
 
-Для настройки (почти) достаточно прочитать [эту](https://software.intel.com/en-us/node/525352) и [эту] (https://software.intel.com/en-us/articles/configuring-visual-studio-for-mixed-language-applications) странички документации и посмотреть примеры проектов, дефолтно расположенных примерно в `C:\Program Files*\IntelSWTools\samples*\en\compiler_f\psxe\MixedLanguage`. Однако имеют место небольшие опечатки и недосказанности, поэтому я лучше здесь об этом напишу.
+Для настройки (почти) достаточно прочитать [эту](https://software.intel.com/en-us/node/525352) и [эту](https://software.intel.com/en-us/articles/configuring-visual-studio-for-mixed-language-applications) странички документации и посмотреть примеры проектов, дефолтно расположенных примерно в `C:\Program Files*\IntelSWTools\samples*\en\compiler_f\psxe\MixedLanguage`. Однако имеют место небольшие опечатки и недосказанности, поэтому я лучше здесь об этом напишу.
 
 По какой-то причине Visual Fortran–проекты не переключаются на x64–платформу автоматически (естественно, если вы хотите делать 64-битные приложения, вы скачали эту версию ifort). Чтобы это исправить, нажимаем на селектбокс платформ Win32 / x64: `Configuration Manager… — Platform — (напротив “FORTRAN Static Lib”) <New…> — x64 — Copy settings from: <Empty>`.
 
